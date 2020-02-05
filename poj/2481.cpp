@@ -1,3 +1,4 @@
+// https://vjudge.net/problem/POJ-2481
 #include <algorithm>
 #include <iostream>
 #include <vector>
@@ -20,7 +21,7 @@ struct Solution {
     vector<Node> cow;
     vector<int> tree;
     vector<int> res;
-    
+
     int lowbit(int x) { return x & -x; }
     void update(int idx, int delta) {
         while (idx <= maxidx) {
@@ -36,7 +37,7 @@ struct Solution {
         }
         return sum;
     }
-    
+
     Solution(int n) : n(n), maxidx(0), cow(), tree(), res() {
         for (int s, e, i = 0; i < n; ++i) {
             cin >> s >> e;
