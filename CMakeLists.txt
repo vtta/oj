@@ -7,14 +7,19 @@ function(add_all_oj_target ojname)
     foreach(filepath ${oj_src})
         get_filename_component(filename ${filepath} NAME)
         string(REPLACE ".cpp" "" filebasename ${filename})
-        set(binaryname ${ojname}-${filebasename})
-        add_executable(${binaryname} ${filepath})
-        add_custom_target(run-${binaryname}
-        COMMAND echo "[${binaryname}] Running" && ./${binaryname} && echo "[${binaryname}] Finished"
-            DEPENDS ${binaryname}
-            WORKING_DIRECTORY ${CMAKE_PROJECT_DIR}
+        set(execname ${ojname}-${filebasename})
+        string(REPLACE ".cpp" ".in" execinput ${filepath})
+        string(REPLACE ".cpp" ".out" execoutput ${filepath})
+        add_executable(${execname} ${filepath})
+        add_custom_target(run-${execname}
+            # COMMAND echo "[${execname}] Running" && ${PROJECT_BINARY_DIR}/${execname} && echo "[${execname}] Finished"
+            COMMAND set -x && cat ${CMAKE_SOURCE_DIR}/${execinput}
+                        | ${PROJECT_BINARY_DIR}/${execname} 
+                        | tee ${CMAKE_SOURCE_DIR}/${execoutput}
+            DEPENDS ${execname}
+            WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
         )
-        # message("${filepath} ${filename} ${filebasename} ${binaryname}")
+        # message("${filepath} ${filename} ${filebasename} ${execname}")
     endforeach()
 endfunction()
 
