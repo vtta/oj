@@ -2,9 +2,12 @@ cmake_minimum_required(VERSION 2.8)
 
 project(oj)
 
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
 function(add_all_oj_target ojname)
     file(GLOB_RECURSE oj_src RELATIVE ${CMAKE_SOURCE_DIR} "${ojname}/*.cpp")
-    foreach(filepath ${oj_src})
+    foreach (filepath ${oj_src})
         get_filename_component(filename ${filepath} NAME)
         string(REPLACE ".cpp" "" filebasename ${filename})
         set(execname ${ojname}-${filebasename})
@@ -12,16 +15,14 @@ function(add_all_oj_target ojname)
         string(REPLACE ".cpp" ".out" execoutput ${filepath})
         add_executable(${execname} ${filepath})
         add_custom_target(run-${execname}
-            # COMMAND echo "[${execname}] Running" && ${PROJECT_BINARY_DIR}/${execname} && echo "[${execname}] Finished"
-            COMMAND set -x && cat ${CMAKE_SOURCE_DIR}/${execinput}
-                        | ${PROJECT_BINARY_DIR}/${execname} 
-                        | tee ${CMAKE_SOURCE_DIR}/${execoutput}
-            DEPENDS ${execname}
-            WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
-        )
+                COMMAND time sh -c ' set -x && cat ${CMAKE_SOURCE_DIR}/${execinput} | ${PROJECT_BINARY_DIR}/${execname} | tee ${CMAKE_SOURCE_DIR}/${execoutput} '
+                DEPENDS ${execname}
+                WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
         # message("${filepath} ${filename} ${filebasename} ${execname}")
-    endforeach()
+    endforeach ()
 endfunction()
+
+add_all_oj_target(lib)
 
 add_all_oj_target(poj)
 
