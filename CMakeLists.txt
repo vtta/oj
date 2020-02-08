@@ -25,6 +25,8 @@ endfunction()
 add_all_oj_target(lib)
 
 add_all_oj_target(poj)
+add_all_oj_target(cf)
+add_all_oj_target(hdu)
 
 # https://cmake.org/cmake/help/latest/command/string.html
 # https://cmake.org/cmake/help/latest/command/get_filename_component.html
