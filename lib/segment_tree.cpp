@@ -1,65 +1,153 @@
 //
-// Created by vtta 🍉 on 2020/2/7.
+// Created by vtta 🍉 on 2020/2/9.
 //
-#include <algorithm>
 #include <cmath>
 #include <iostream>
 #include <vector>
 using namespace std;
-int min(int x, int y) { return x < y ? x : y; }
-class SegmentTree {
-    int n, m, inv;
-    // int (*func)(int, int);
-    std::vector<int> lo, hi, val, lazy;
 
-    void update(int i, int l, int r, int v) {
-        if (r <= lo[i] || l >= hi[i]) {
-            return;
+typedef long long i64;
+
+struct SegmentTreeBU {
+    int n, h;
+    vector<i64> tree, lazy, len;
+
+    SegmentTreeBU(int n)
+        : n(n), h(log2(n) + 1), tree(2 * n), lazy(n), len(2 * n) {
+        for (int i = 0; i < n; ++i) {
+            cin >> tree[i + n];
+            len[i + n] = 1;
         }
-        if (l <= lo[i] && hi[i] <= r) {
-            lazy[i] += v;
-        }
-        prop(i);
-        update(i * 2, l, r, v);
-        update(i * 2 + 1, l, r, v);
-        calc(i);
+        init();
     }
-    void init(int i, int l, int r) {
-        lo[i] = l;
-        hi[i] = r;
+
+    void init() {
+        for (int i = n - 1; i > 0; --i) {
+            tree[i] = tree[i * 2] + tree[i * 2 + 1];
+            len[i] = len[i * 2] + len[i * 2 + 1];
+        }
+    }
+    void apply(int p, i64 x) {
+        tree[p] += len[p] * x;
+        if (p < n) {
+            lazy[p] += x;
+        }
+    }
+    void sink(int p) {
+        int w = pow(2, h);
+        while ((w /= 2) > 1) {
+            int i = p / w;
+            i64 &x = lazy[i];
+            if (x != 0) {
+                apply(i * 2, x);
+                apply(i * 2 + 1, x);
+                x = 0;
+            }
+        }
+    }
+    void swim(int p) {
+        while ((p /= 2) > 0) {
+            tree[p] = tree[p * 2] + tree[p * 2 + 1] + lazy[p] * len[p];
+        }
+    }
+    void modify(int l, int r, i64 x) {
+        l += n;
+        r += n;
+        int l0 = l, r0 = r;
+        for (; l < r; l /= 2, r /= 2) {
+            if (l & 1) {
+                apply(l++, x);
+            }
+            if (r & 1) {
+                apply(--r, x);
+            }
+        }
+        swim(l0);
+        swim(r0 - 1);
+    }
+    i64 query(int l, int r) {
+        l += n;
+        r += n;
+        sink(l);
+        sink(r - 1);
+        i64 res = 0;
+        for (; l < r; l /= 2, r /= 2) {
+            if (l & 1) {
+                res += tree[l++];
+            }
+            if (r & 1) {
+                res += tree[--r];
+            }
+        }
+        return res;
+    }
+};
+
+struct SegmentTreeTD {
+    int n;
+    struct node {
+        int low, high;
+        i64 val, lazy;
+    };
+    vector<node> tree;
+
+    SegmentTreeTD(int n) : n(n), tree(4 * n) { init(0, n); }
+
+    void init(int l, int r, int i = 1) {
+        node &x = tree[i];
+        x.low = l;
+        x.high = r;
         if (r - l == 1) {
+            cin >> tree[i].val;
             return;
         }
         int m = (l + r) / 2;
-        init(i * 2, l, m);
-        init(i * 2, m, r);
-    }
-    int query(int i, int l, int r) {
-        if (r <= lo[i] || l >= hi[i]) {
-            return inv;
-        }
-        if (l <= lo[i] && hi[i] <= r) {
-            return val[i] + lazy[i];
-        }
-        prop(i);
-        int ll = query(i * 2, l, r);
-        int rr = query(i * 2 + 1, l, r);
-        calc(i);
-        return std::min(ll, rr);
+        init(l, m, i * 2);
+        init(m, r, i * 2 + 1);
+        update(i);
     }
     void prop(int i) {
-        lazy[i * 2] += lazy[i];
-        lazy[i * 2 + 1] += lazy[i];
-        lazy[i] = 0;
+        node &x = tree[i];
+        if (x.lazy) {
+            node &l = tree[i * 2], &r = tree[i * 2 + 1];
+            l.lazy += x.lazy;
+            r.lazy += x.lazy;
+            l.val += x.lazy * (l.high - l.low);
+            r.val += x.lazy * (r.high - r.low);
+            x.lazy = 0;
+        }
     }
-    void calc(int i) { val[i] = std::min(val[i * 2], val[i * 2 + 1]); }
-
-public:
-    SegmentTree(int n)
-        : n(n), m(4 * n + 1), inv(0x7fffffff), lo(m), hi(m), val(m), lazy(m) {
-        init(1, 0, n);
+    void update(int i) {
+        node &x = tree[i], &l = tree[i * 2], &r = tree[i * 2 + 1];
+        x.val = l.val + r.val + x.lazy * (x.high - x.low);
     }
-
-    void update(int l, int r, int v) { update(1, l, r, v); }
-    int query(int l, int r) { return query(1, l, r); }
+    i64 query(int l, int r, int i = 1) {
+        node &x = tree[i];
+        if (x.high <= l || r <= x.low) {
+            return 0;
+        }
+        if (l <= x.low && x.high <= r) {
+            return x.val;
+        }
+        prop(i);
+        i64 ll = query(l, r, i * 2);
+        i64 rr = query(l, r, i * 2 + 1);
+        update(i);
+        return ll + rr;
+    }
+    void modify(int l, int r, i64 v, int i = 1) {
+        node &x = tree[i];
+        if (x.high <= l || r <= x.low) {
+            return;
+        }
+        if (l <= x.low && x.high <= r) {
+            x.lazy += v;
+            x.val += v * (x.high - x.low);
+            return;
+        }
+        prop(i);
+        modify(l, r, v, i * 2);
+        modify(l, r, v, i * 2 + 1);
+        update(i);
+    }
 };
