@@ -2,8 +2,10 @@ cmake_minimum_required(VERSION 2.8)
 
 project(oj)
 
-set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+add_custom_target(run-all)
 
 function(add_all_oj_target ojname)
     file(GLOB_RECURSE oj_src RELATIVE ${CMAKE_SOURCE_DIR} "${ojname}/*.cpp")
@@ -18,6 +20,7 @@ function(add_all_oj_target ojname)
                 COMMAND time sh -c ' set -x && cat ${CMAKE_SOURCE_DIR}/${execinput} | ${PROJECT_BINARY_DIR}/${execname} | tee ${CMAKE_SOURCE_DIR}/${execoutput} '
                 DEPENDS ${execname}
                 WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
+        add_dependencies(run-all run-${execname})
         # message("${filepath} ${filename} ${filebasename} ${execname}")
     endforeach ()
 endfunction()

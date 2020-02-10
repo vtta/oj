@@ -151,3 +151,5 @@ struct SegmentTreeTD {
         update(i);
     }
 };
+
+int main() { return 0; }
