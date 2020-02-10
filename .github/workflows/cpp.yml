@@ -14,4 +14,4 @@ jobs:
     - name: build
       run: cmake --build build
     - name: run
-      run: cd build && make run-all
+      run: cd build && make all && make run-all
