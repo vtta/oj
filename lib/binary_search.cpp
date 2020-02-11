@@ -9,32 +9,44 @@ namespace BS {
 using u64 = size_t;
 
 u64 lower_bound(vector<int> &nums, int target) {
-    u64 n = nums.size(), p = n - 1;
-    for (u64 w = n / 2; w > 0; w /= 2) {
-        while (p >= w && nums[p - w] >= target) {
-            p -= w;
+    auto ok = [&](u64 m) { return nums[m] < target; };
+    u64 l = 0, r = nums.size();
+    while (l < r) {
+        u64 m = l + (r - l) / 2;
+        if (ok(m)) {
+            l = m + 1;
+        } else {
+            r = m;
         }
     }
-    return p;
+    return l;
 }
 
 u64 upper_bound(vector<int> &nums, int target) {
-    u64 n = nums.size(), p = 0;
-    for (u64 w = n / 2; w > 0; w /= 2) {
-        while (p + w < n && nums[p + w] <= target) {
-            p += w;
+    auto ok = [&](u64 m) { return nums[m] > target; };
+    u64 l = 0, r = nums.size();
+    while (l < r) {
+        u64 m = l + (r - l) / 2;
+        if (!ok(m)) {
+            l = m + 1;
+        } else {
+            r = m;
         }
     }
-    return p + 1;
+    return l;
 }
 
 };  // namespace BS
 
 int main() {
     {
-        vector<int> vec{1, 1, 1, 1, 2, 2, 2};
+        vector<int> vec{1, 1, 1, 1, 3, 3, 3};
+        assert(BS::lower_bound(vec, 3) == 4);
+        assert(BS::upper_bound(vec, 3) == 7);
         assert(BS::lower_bound(vec, 2) == 4);
-        assert(BS::upper_bound(vec, 2) == 7);
+        assert(BS::upper_bound(vec, 2) == 4);
+        assert(BS::lower_bound(vec, 4) == 7);
+        assert(BS::upper_bound(vec, 4) == 7);
     }
     {
         vector<int> vec{0, 1, 2, 3, 4, 5, 6, 7};
