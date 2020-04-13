@@ -7,33 +7,38 @@ using namespace std;
 typedef long long i64;
 struct Solution {
     int n, m;
-    vector<int> a, p;
-    unordered_set<int> s;
+    vector<int> a;
+    vector<bool> ok;
 
-    Solution(int n, int m) : n(n), m(m), a(n), p(m) {
-        for (int i = 0; i < n; ++i) {
-            cin >> a[i];
+    Solution(int n, int m) : n(n), m(m), a(n), ok(n, false) {
+        for (auto &i : a) {
+            cin >> i;
         }
-        for (int i = 0; i < m; ++i) {
-            cin >> p[i];
-            s.insert(p[i]);
+        for (int i = 0; i < m; i += 1) {
+            int t;
+            cin >> t;
+            ok[t] = true;
         }
     }
 
     void solve() {
-        for (int i = 0; i < n; ++i) {
-            for (int j = i + 1; j < n; ++j) {
-                if (a[i] > a[j]) {
-                    swap(a[i], a[j]);
-                    if (s.find(i + 1) == s.end()) {
-                        cout << "NO" << endl;
-                        return;
-                        ;
+        for (int i = n; i > 0; --i) {
+            for (int j = 1; j < i; ++j) {
+                if (a[j - 1] > a[j]) {
+                    if (ok[j]) {
+                        swap(a[j - 1], a[j]);
                     }
                 }
             }
         }
-        cout << "YES" << endl;
+        bool sorted = true;
+        for (int i = 1; i < n; ++i) {
+            if (a[i - 1] > a[i]) {
+                sorted = false;
+                break;
+            }
+        }
+        cout << (sorted ? "YES" : "NO") << endl;
     }
 };
 
